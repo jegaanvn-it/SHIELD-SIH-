@@ -67,3 +67,44 @@ Requested one-time backup target: `%USERPROFILE%\SARA-backups\pre-commit-2026102
 - No unrelated file edits, external requests, or push. Track U supplies no M0A/M0B acceptance credit and does not close either milestone.
 - WP-U may begin only after the WP-S baseline commit exists. It may create branch `track-u-ui` from that baseline commit, stage only its own explicitly reviewed WP-U paths, and make commits only through the approved secret-scan hook after scanning the exact content. Never bypass the hook; no push or merge.
 - The grant expires after `reports/track_u_report.md` is delivered or upon Prem's revocation.
+
+## WP-G — Gemini AI Brain Integration
+
+**Status:** Active. **Activation token:** `AUTHORIZE WP-G`.
+
+### Bundled scopes and exact paths
+
+- **FILES WP-G — exact paths only:**
+  - `docs/AUTHORIZATIONS.md`
+  - `src/sara/config.py`
+  - `src/sara/providers/base.py`
+  - `src/sara/providers/gemini.py`
+  - `src/sara/providers/__init__.py`
+  - `src/sara/ui/app.py`
+  - `tests/track_u/test_gemini_provider.py`
+  - `tests/track_u/test_ui_async.py`
+  - `reports/wp_g_report.md`
+- Runtime database path: `%LOCALAPPDATA%\Sara\track_u\conversations.sqlite3` only. Tests must use a temporary database under `%TEMP%\sara-track-u-tests\`; tests must not open the runtime database or launch the UI.
+- **LAUNCH WP-G — named commands only:**
+
+  Automated tests:
+
+  ```powershell
+  $env:PYTHONPATH='src'; .\.venv\Scripts\python.exe -m pytest -p no:cacheprovider --basetemp "$env:TEMP\sara-track-u-tests" tests\track_u
+  ```
+
+- **Prem manual UI launch only; Codex must not run this command.** The final `reports/wp_g_report.md` must include this exact PowerShell command:
+
+  ```powershell
+  $env:PYTHONPATH='src'; .\.venv\Scripts\python.exe -m sara.ui.app --database "$env:LOCALAPPDATA\Sara\track_u\conversations.sqlite3"
+  ```
+
+### Restrictions and Git handoff
+
+- Implement Gemini AI provider using official `google-genai` SDK, secure API key handling via `GEMINI_API_KEY`, configurable model via `GEMINI_MODEL`, background threading for UI responsiveness, strict conversation context isolation, error mapping, and retry support without prompt duplication.
+- Keep `EchoProvider` available for offline testing.
+- Automated tests must run completely offline without internet or real API keys using mock transports.
+- No third-party dependencies outside the pinned `requirements-m0a.txt` environment. No voice, animations, Windows automation, phone integration, or PC telemetry.
+- Commits must pass the active pre-commit security hook after scanning exact content. Never bypass the hook; no push or merge.
+- The grant expires after `reports/wp_g_report.md` is delivered or upon Prem's revocation.
+
