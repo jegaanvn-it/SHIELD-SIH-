@@ -1,0 +1,10 @@
+Python-la list-ku tuple-ku enna difference?
+SQL JOIN eppadi work aagum, oru chinna example-oda sollu.
+Iruvathi anju nimisham study timer vei.
+Notes folder-ah open pannu.
+En Flask app "address already in use" nu kaattuthu, yen?
+Pandas DataFrame pathi moonu practice questions kudu.
+Gradient descent enna pannum nu rendu sentence-la sollu.
+Aaru mani-ku start panninaa break eppo edukkalam?
+Programmers pathi oru friendly joke sollu.
+Konjam slow-aa pesu please.

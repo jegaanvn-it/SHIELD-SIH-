@@ -1,0 +1,32 @@
+# Credentials and local environment files
+.env
+.env.*
+!.env.example
+
+# Python environments and bytecode
+.venv/
+__pycache__/
+
+# Local databases and sidecars
+*.db
+*.sqlite*
+*.db-wal
+*.db-shm
+
+# Local logs and scratch data
+logs/
+*.log
+tmp/
+temp/
+
+# Generated data and exports
+artifacts/
+exports/
+*.wav
+*.mp3
+*.ogg
+*.pcm
+
+# Approved privacy safeguards
+.claude-flow/
+sara_battery_report.html

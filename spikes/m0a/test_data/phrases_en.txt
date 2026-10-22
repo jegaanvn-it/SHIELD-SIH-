@@ -1,0 +1,10 @@
+What is the difference between a list and a tuple in Python?
+Explain how a SQL JOIN works with a small example.
+Set a study timer for twenty five minutes.
+Can you open the notes folder?
+Why does my Flask app say "address already in use"?
+Give me three practice questions on pandas DataFrames.
+Summarize what gradient descent does in two sentences.
+What time should I take a break if I started at six?
+Tell me a joke about programmers, but keep it friendly.
+Please speak more slowly.

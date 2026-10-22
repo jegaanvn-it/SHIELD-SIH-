@@ -1,0 +1,10 @@
+Was ist der Unterschied zwischen einer Liste und einem Tupel in Python?
+Erkläre mit einem kleinen Beispiel, wie ein SQL-JOIN funktioniert.
+Stelle einen Lern-Timer auf fünfundzwanzig Minuten.
+Öffne bitte den Notizen-Ordner.
+Meine Flask-App meldet „address already in use“. Warum?
+Gib mir drei Übungsaufgaben zu pandas-DataFrames.
+Fasse in zwei Sätzen zusammen, was Gradientenabstieg macht.
+Wann sollte ich eine Pause machen, wenn ich um sechs angefangen habe?
+Erzähl mir einen freundlichen Witz über Programmierer.
+Bitte sprich etwas langsamer.

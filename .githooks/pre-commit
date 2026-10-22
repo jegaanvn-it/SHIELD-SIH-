@@ -1,0 +1,25 @@
+#!/bin/sh
+set -e
+
+fail_closed() {
+  printf '%s\n' "WP-S secret scan blocked commit: $1" >&2
+  exit 1
+}
+
+if [ -z "${LOCALAPPDATA:-}" ]; then
+  fail_closed 'LOCALAPPDATA is unavailable.'
+fi
+
+GL="$LOCALAPPDATA/SARA-tools/gitleaks/v8.30.1/gitleaks.exe"
+[ -f "$GL" ] || fail_closed 'The approved Gitleaks executable is missing.'
+
+command -v sha256sum >/dev/null 2>&1 || fail_closed 'sha256sum is unavailable.'
+actual="$(sha256sum "$GL")" || fail_closed 'Could not calculate the Gitleaks executable SHA-256.'
+actual=${actual%% *}
+actual="${actual#\\}"
+actual="$(printf '%s' "$actual" | tr '[:upper:]' '[:lower:]')" || fail_closed 'Could not normalize the Gitleaks executable SHA-256.'
+expected='17157e2ee8b76fc8b1d8bee607a250e34b8a8023c8bc81822d4b5ee4d78fcb7c'
+[ "$actual" = "$expected" ] || fail_closed 'The Gitleaks executable SHA-256 does not match the approved value.'
+
+# A nonzero scanner result exits under `set -e` and blocks the commit.
+"$GL" git --pre-commit --staged --config .gitleaks.toml --redact --no-banner

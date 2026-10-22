@@ -1,0 +1,13 @@
+# Model IDs remain blank until Prem decides D-8 after official-source research.
+# This example contains no credentials and is not loaded by .env.
+
+[models]
+text = ""
+audio_understanding = ""
+speech_synthesis = ""
+
+[budget]
+planned_attempts = 25
+reserve_attempts = 5
+hard_cap = 30
+timeout_seconds = 60
