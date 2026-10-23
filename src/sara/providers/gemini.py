@@ -73,7 +73,9 @@ class GeminiProvider(BaseProvider):
             return self._client
         if not self.has_api_key:
             raise GeminiAPIKeyMissingError(
-                "Gemini API key is not configured. Please set the GEMINI_API_KEY environment variable."
+                "GEMINI_API_KEY environment variable is not configured. "
+                "To chat with Gemini, set your API key in PowerShell: $env:GEMINI_API_KEY = 'your_key'. "
+                "Or launch SARA in offline testing mode using: python -m sara.ui.app --provider echo"
             )
         self._client = genai.Client(api_key=self._api_key)
         return self._client

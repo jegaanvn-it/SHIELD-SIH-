@@ -104,12 +104,22 @@ class SaraApp:
         self.conv_listbox.bind("<<ListboxSelect>>", self._on_conversation_selected)
 
         # Provider indicator badge
-        provider_name = "Gemini AI" if isinstance(self.provider, GeminiProvider) else "Echo Mode"
+        if isinstance(self.provider, GeminiProvider):
+            if self.provider.has_api_key:
+                provider_status = "Gemini AI"
+                badge_fg = "#107c41"
+            else:
+                provider_status = "Gemini (Key Missing)"
+                badge_fg = "#d83b01"
+        else:
+            provider_status = "Echo Mode"
+            badge_fg = "#555555"
+
         self.provider_badge = ttk.Label(
             self.sidebar_frame,
-            text=f"Brain: {provider_name}",
-            font=("Segoe UI", 9, "italic"),
-            foreground="#555555",
+            text=f"Brain: {provider_status}",
+            font=("Segoe UI", 9, "bold" if isinstance(self.provider, GeminiProvider) and not self.provider.has_api_key else "italic"),
+            foreground=badge_fg,
         )
         self.provider_badge.pack(fill=tk.X, pady=(4, 2))
 
@@ -222,6 +232,19 @@ class SaraApp:
             self.select_conversation(self._conversations_cache[0].id)
         else:
             self.create_new_conversation()
+
+        if isinstance(self.provider, GeminiProvider) and not self.provider.has_api_key:
+            msgs = self.storage.get_messages(self.current_conversation_id) if self.current_conversation_id else []
+            if not msgs:
+                self.chat_text.config(state=tk.NORMAL)
+                self._append_error_notice_to_view(
+                    "GEMINI_API_KEY environment variable is not configured.\n\n"
+                    "To chat with Gemini, set your API key in PowerShell before launching:\n"
+                    "  $env:GEMINI_API_KEY = 'your_api_key'\n\n"
+                    "For offline testing, launch with:\n"
+                    "  python -m sara.ui.app --provider echo"
+                )
+                self.chat_text.config(state=tk.DISABLED)
 
     def refresh_conversation_list(self) -> None:
         """Reload conversation list from storage and update listbox."""
@@ -674,12 +697,9 @@ def default_database_path() -> Path:
     return base / "Sara" / "track_u" / "conversations.sqlite3"
 
 
-def create_default_provider() -> BaseProvider:
-    """Instantiate GeminiProvider if GEMINI_API_KEY is present; fallback to EchoProvider."""
-    api_key = get_gemini_api_key()
-    if api_key:
-        return GeminiProvider(api_key=api_key, model=get_gemini_model())
-    return EchoProvider()
+def create_default_provider(model: str | None = None) -> BaseProvider:
+    """Instantiate GeminiProvider as the default provider without silent Echo fallback."""
+    return GeminiProvider(model=model or get_gemini_model())
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -700,9 +720,9 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--provider",
         type=str,
-        choices=["auto", "gemini", "echo"],
-        default="auto",
-        help="AI provider to use (default: auto)",
+        choices=["gemini", "echo", "auto"],
+        default="gemini",
+        help="AI provider to use (default: gemini)",
     )
     parser.add_argument(
         "--model",
@@ -720,16 +740,12 @@ def main(argv: list[str] | None = None) -> None:
         # Default: Session-only ephemeral in-memory mode (zero disk trace)
         storage = SQLiteStorage(ephemeral=True)
 
-    # Provider selection
+    # Provider selection: Gemini is default; Echo only when explicitly requested
     if args.provider == "echo":
         provider: BaseProvider = EchoProvider()
-    elif args.provider == "gemini":
-        provider = GeminiProvider(model=args.model)
     else:
-        # Auto mode
-        provider = create_default_provider()
-        if args.model and isinstance(provider, GeminiProvider):
-            provider.model = args.model
+        # Default is GeminiProvider. If GEMINI_API_KEY is missing, user gets an actionable error, not Echo.
+        provider = GeminiProvider(model=args.model)
 
     root = tk.Tk()
     app = SaraApp(root, storage, provider)

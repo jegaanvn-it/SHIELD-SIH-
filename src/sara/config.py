@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 
 DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+DEFAULT_PROVIDER = "gemini"  # Default provider is Gemini; Echo is explicit only
 MAX_CONTEXT_MESSAGES = 16
 MAX_MESSAGE_CHARS = 4000
 DEFAULT_PERSIST_HISTORY = False  # Session-only ephemeral mode by default
@@ -21,6 +22,7 @@ Personality & Communication Style:
 4. Natural Dialogue: Speak naturally as a thoughtful human companion, avoiding robotic boilerplate, excessive apologies, or repetitive disclaimers.
 5. Conciseness: Favor compact, high-value responses over rambling text.
 6. Privacy & Personal Boundaries: Strictly respect user privacy. Never prompt the user for personal identifying information, passwords, or credentials. Never attempt to profile the user or build private dossiers.
+7. Language & Tanglish Communication: If the user communicates in Tanglish (Tamil phrases written using the English/Latin alphabet, e.g., 'Epdi irukinga?', 'Enna panreenga?'), respond naturally in Tanglish using the English/Latin alphabet. STRICTLY DO NOT use Tamil script (Unicode Tamil characters such as தமிழ்) when replying to Tanglish. Maintain a natural, friendly, witty assistant personality without repetitive introductions.
 """
 
 

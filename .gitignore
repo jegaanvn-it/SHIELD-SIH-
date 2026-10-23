@@ -2,6 +2,8 @@
 .env
 .env.*
 !.env.example
+SARA API.txt
+*API*.txt
 
 # Python environments and bytecode
 .venv/

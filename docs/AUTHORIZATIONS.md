@@ -110,7 +110,7 @@ Requested one-time backup target: `%USERPROFILE%\SARA-backups\pre-commit-2026102
 
 ## WP-M — Privacy-First Memory and Conversation Storage
 
-**Status:** Active. **Activation token:** `AUTHORIZE WP-M`.
+**Status:** Completed (commits `7ddd054`, `1e8d31e`). **Activation token:** `AUTHORIZE WP-M`.
 
 ### Bundled scopes and exact paths
 
@@ -148,4 +148,45 @@ Requested one-time backup target: `%USERPROFILE%\SARA-backups\pre-commit-2026102
 - 100% offline automated tests using mock transports. No live API calls.
 - Commits must pass the active pre-commit security hook after scanning exact content. Never bypass the hook; no push or merge.
 - The grant expires after `reports/wp_m_report.md` is delivered or upon Prem's revocation.
+
+## WP-V03 — Actual Gemini API Configuration, Tanglish Behavior, and Verification
+
+**Status:** Active. **Activation token:** `AUTHORIZE WP-V03`.
+
+### Bundled scopes and exact paths
+
+- **FILES WP-V03 — exact paths only:**
+  - `docs/AUTHORIZATIONS.md`
+  - `.gitignore`
+  - `src/sara/config.py`
+  - `src/sara/providers/gemini.py`
+  - `src/sara/ui/app.py`
+  - `tests/track_u/test_v03_verification.py`
+  - `reports/wp_v03_report.md`
+- Runtime database path: `%LOCALAPPDATA%\Sara\track_u\conversations.sqlite3` only when persistence is explicitly enabled. Tests must use `:memory:` or a temporary database under `%TEMP%\sara-track-u-tests\`; tests must not open the runtime database or launch the UI.
+- **LAUNCH WP-V03 — named commands only:**
+
+  Automated tests:
+
+  ```powershell
+  $env:PYTHONPATH='src'; .\.venv\Scripts\python.exe -m pytest -p no:cacheprovider --basetemp "$env:TEMP\sara-track-u-tests" tests\track_u
+  ```
+
+- **Prem manual UI launch only; Codex must not run this command:**
+
+  ```powershell
+  $env:PYTHONPATH='src'; .\.venv\Scripts\python.exe -m sara.ui.app
+  ```
+
+### Restrictions and Git handoff
+
+- Make Gemini the default provider. Echo provider available only when explicitly requested via `--provider echo`.
+- Do not silently fall back to Echo when Gemini API key is missing or fails; display actionable guidance.
+- Configure Tanglish response behavior: respond in Tanglish using Latin script only; forbid Tamil script when user writes in Tanglish.
+- Maintain conversation context isolation, bounded history, and privacy defaults (ephemeral RAM default, memory default OFF).
+- Protect sensitive text files (e.g. `SARA API.txt`) via `.gitignore`.
+- Automated tests run 100% offline using mock transports without live API calls.
+- Commits must pass the active pre-commit security hook after scanning exact content. Never bypass the hook.
+- Pushing to a remote repository requires a verified remote URL and explicit push authorization.
+- The grant expires after `reports/wp_v03_report.md` is delivered or upon Prem's revocation.
 
