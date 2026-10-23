@@ -30,3 +30,14 @@ class Message:
     role: str
     content: str
     created_at: str
+
+
+@dataclass(frozen=True)
+class Memory:
+    """Representation of an explicit, user-approved long-term memory."""
+
+    id: int | None
+    content: str
+    category: str
+    source_conversation_id: str | None
+    created_at: str

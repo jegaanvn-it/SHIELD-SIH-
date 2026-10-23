@@ -9,7 +9,7 @@ import queue
 import sys
 import threading
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import messagebox, simpledialog, ttk
 from typing import Any
 
 from sara.config import get_gemini_api_key, get_gemini_model
@@ -111,7 +111,17 @@ class SaraApp:
             font=("Segoe UI", 9, "italic"),
             foreground="#555555",
         )
-        self.provider_badge.pack(fill=tk.X, pady=(6, 4))
+        self.provider_badge.pack(fill=tk.X, pady=(4, 2))
+
+        # Storage mode badge
+        storage_mode = "Ephemeral (RAM)" if getattr(self.storage, "ephemeral", False) else "Persistent (Disk)"
+        self.storage_badge = ttk.Label(
+            self.sidebar_frame,
+            text=f"Storage: {storage_mode}",
+            font=("Segoe UI", 9, "italic"),
+            foreground="#555555",
+        )
+        self.storage_badge.pack(fill=tk.X, pady=(0, 4))
 
         # Delete conversation button
         self.del_chat_btn = ttk.Button(
@@ -120,6 +130,14 @@ class SaraApp:
             command=self.delete_current_conversation,
         )
         self.del_chat_btn.pack(fill=tk.X, pady=(4, 0))
+
+        # Privacy & Memory settings button
+        self.privacy_btn = ttk.Button(
+            self.sidebar_frame,
+            text="🔒 Privacy & Memory",
+            command=self.open_privacy_dialog,
+        )
+        self.privacy_btn.pack(fill=tk.X, pady=(4, 0))
 
         # Right chat area frame
         self.chat_frame = ttk.Frame(self.paned, padding=10)
@@ -494,6 +512,141 @@ class SaraApp:
                     self.conv_listbox.selection_set(idx)
                     break
 
+    def open_privacy_dialog(self) -> None:
+        """Display the Privacy, Ephemeral Storage, and Long-Term Memory controls dialog."""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("SARA — Privacy & Memory Management")
+        dialog.geometry("620x560")
+        dialog.minsize(500, 460)
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        frame = ttk.Frame(dialog, padding=16)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        # Header
+        ttk.Label(
+            frame,
+            text="🔒 Privacy & Storage Controls",
+            font=("Segoe UI", 13, "bold"),
+        ).pack(anchor=tk.W, pady=(0, 6))
+
+        # Disclosure note
+        disclosure_box = tk.Text(
+            frame,
+            wrap=tk.WORD,
+            height=5,
+            font=("Segoe UI", 9),
+            bg="#f4f4f4",
+            relief=tk.FLAT,
+            padx=8,
+            pady=8,
+        )
+        disclosure_box.insert(
+            tk.END,
+            "• Ephemeral Default: Conversation history is held strictly in RAM by default and is wiped when SARA exits.\n"
+            "• Network Boundary: When you send a message, that message and recent turns leave your PC over HTTPS to Google Gemini. Local controls do not purge provider-side logs.\n"
+            "• Credential Shield: Best-effort regex redacts common API keys before storage, but cannot detect arbitrary passwords. Never enter sensitive credentials."
+        )
+        disclosure_box.config(state=tk.DISABLED)
+        disclosure_box.pack(fill=tk.X, pady=(0, 10))
+
+        # Status indicators
+        status_frame = ttk.LabelFrame(frame, text="Current Configuration", padding=10)
+        status_frame.pack(fill=tk.X, pady=(0, 10))
+
+        ephemeral_text = "Ephemeral (In-Memory Only, Zero Disk Trace)" if getattr(self.storage, "ephemeral", False) else "Persistent (Local SQLite Disk)"
+        ttk.Label(status_frame, text=f"Local Storage Mode: {ephemeral_text}", font=("Segoe UI", 9, "bold")).pack(anchor=tk.W, pady=2)
+
+        mem_status_text = "Enabled (User Opt-in)" if self.storage.is_memory_enabled() else "Disabled (Default OFF — Zero Auto-Extraction)"
+        mem_label = ttk.Label(status_frame, text=f"Long-Term Memory: {mem_status_text}", font=("Segoe UI", 9))
+        mem_label.pack(anchor=tk.W, pady=2)
+
+        # Memory controls frame
+        mem_frame = ttk.LabelFrame(frame, text="Long-Term Memories (Explicit Only)", padding=10)
+        mem_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+
+        # Toggle memory button
+        def toggle_memory() -> None:
+            currently_enabled = self.storage.is_memory_enabled()
+            if not currently_enabled:
+                if messagebox.askyesno(
+                    "Enable Memory",
+                    "Enable cross-session memory?\n\nSARA will only store memories when you explicitly create them. Personal details are never automatically collected.",
+                    parent=dialog,
+                ):
+                    self.storage.set_memory_enabled(True)
+            else:
+                self.storage.set_memory_enabled(False)
+            new_status = "Enabled (User Opt-in)" if self.storage.is_memory_enabled() else "Disabled (Default OFF — Zero Auto-Extraction)"
+            mem_label.config(text=f"Long-Term Memory: {new_status}")
+            refresh_mem_list()
+
+        toggle_btn = ttk.Button(mem_frame, text="Toggle Memory Setting", command=toggle_memory)
+        toggle_btn.pack(anchor=tk.W, pady=(0, 6))
+
+        # Memory listbox
+        list_container = ttk.Frame(mem_frame)
+        list_container.pack(fill=tk.BOTH, expand=True)
+
+        mem_listbox = tk.Listbox(list_container, font=("Segoe UI", 9), activestyle="none")
+        mem_scroll = ttk.Scrollbar(list_container, orient=tk.VERTICAL, command=mem_listbox.yview)
+        mem_listbox.configure(yscrollcommand=mem_scroll.set)
+        mem_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        mem_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+
+        mem_cache: list[Any] = []
+
+        def refresh_mem_list() -> None:
+            nonlocal mem_cache
+            mem_listbox.delete(0, tk.END)
+            mem_cache = self.storage.list_memories()
+            if not mem_cache:
+                mem_listbox.insert(tk.END, "(No memories stored)")
+                return
+            for m in mem_cache:
+                snippet = m.content[:60] + ("…" if len(m.content) > 60 else "")
+                mem_listbox.insert(tk.END, f"[{m.created_at[:10]}] {snippet}")
+
+        refresh_mem_list()
+
+        # Memory Action buttons
+        btn_row = ttk.Frame(mem_frame)
+        btn_row.pack(fill=tk.X, pady=(6, 0))
+
+        def add_custom_memory() -> None:
+            if not self.storage.is_memory_enabled():
+                messagebox.showwarning("Memory Disabled", "Please enable long-term memory first.", parent=dialog)
+                return
+            fact = simpledialog.askstring("Add Memory", "Enter user-approved fact or preference to remember:", parent=dialog)
+            if fact and fact.strip():
+                try:
+                    self.storage.add_memory(fact.strip())
+                    refresh_mem_list()
+                except Exception as exc:
+                    messagebox.showerror("Error", str(exc), parent=dialog)
+
+        def delete_selected_memory() -> None:
+            sel = mem_listbox.curselection()
+            if not sel or not mem_cache:
+                return
+            mem_item = mem_cache[sel[0]]
+            if mem_item.id is not None:
+                self.storage.delete_memory(mem_item.id)
+                refresh_mem_list()
+
+        def clear_all_mems() -> None:
+            if messagebox.askyesno("Clear All", "Delete all long-term memories?", parent=dialog):
+                self.storage.clear_all_memories()
+                refresh_mem_list()
+
+        ttk.Button(btn_row, text="➕ Add Memory", command=add_custom_memory).pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Button(btn_row, text="🗑 Delete Selected", command=delete_selected_memory).pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Button(btn_row, text="🔥 Clear All", command=clear_all_mems).pack(side=tk.RIGHT)
+
+        # Dialog close button
+        ttk.Button(frame, text="Close", command=dialog.destroy).pack(anchor=tk.E, pady=(8, 0))
+
     def _on_close(self) -> None:
         """Gracefully handle window close during active requests."""
         self._shutdown_event.set()
@@ -536,7 +689,13 @@ def main(argv: list[str] | None = None) -> None:
         "--database",
         type=str,
         default=None,
-        help="Path to SQLite database file",
+        help="Path to SQLite database file (activates disk persistence)",
+    )
+    parser.add_argument(
+        "--persist",
+        action="store_true",
+        default=False,
+        help="Enable persistent local disk storage (default: ephemeral in-memory)",
     )
     parser.add_argument(
         "--provider",
@@ -553,8 +712,13 @@ def main(argv: list[str] | None = None) -> None:
     )
     args = parser.parse_args(argv)
 
-    db_path = Path(args.database) if args.database else default_database_path()
-    storage = SQLiteStorage(db_path)
+    if args.database:
+        storage = SQLiteStorage(Path(args.database), ephemeral=False)
+    elif args.persist:
+        storage = SQLiteStorage(default_database_path(), ephemeral=False)
+    else:
+        # Default: Session-only ephemeral in-memory mode (zero disk trace)
+        storage = SQLiteStorage(ephemeral=True)
 
     # Provider selection
     if args.provider == "echo":

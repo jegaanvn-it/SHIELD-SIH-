@@ -70,7 +70,7 @@ Requested one-time backup target: `%USERPROFILE%\SARA-backups\pre-commit-2026102
 
 ## WP-G — Gemini AI Brain Integration
 
-**Status:** Active. **Activation token:** `AUTHORIZE WP-G`.
+**Status:** Completed (commits `ef530f2`, `5834459`). **Activation token:** `AUTHORIZE WP-G`.
 
 ### Bundled scopes and exact paths
 
@@ -107,4 +107,45 @@ Requested one-time backup target: `%USERPROFILE%\SARA-backups\pre-commit-2026102
 - No third-party dependencies outside the pinned `requirements-m0a.txt` environment. No voice, animations, Windows automation, phone integration, or PC telemetry.
 - Commits must pass the active pre-commit security hook after scanning exact content. Never bypass the hook; no push or merge.
 - The grant expires after `reports/wp_g_report.md` is delivered or upon Prem's revocation.
+
+## WP-M — Privacy-First Memory and Conversation Storage
+
+**Status:** Active. **Activation token:** `AUTHORIZE WP-M`.
+
+### Bundled scopes and exact paths
+
+- **FILES WP-M — exact paths only:**
+  - `docs/AUTHORIZATIONS.md`
+  - `src/sara/config.py`
+  - `src/sara/memory/models.py`
+  - `src/sara/memory/storage.py`
+  - `src/sara/ui/app.py`
+  - `tests/track_u/test_memory_privacy.py`
+  - `reports/wp_m_report.md`
+- Runtime database path: `%LOCALAPPDATA%\Sara\track_u\conversations.sqlite3` only when persistence is explicitly enabled. Tests must use `:memory:` or a temporary database under `%TEMP%\sara-track-u-tests\`; tests must not open the runtime database or launch the UI.
+- **LAUNCH WP-M — named commands only:**
+
+  Automated tests:
+
+  ```powershell
+  $env:PYTHONPATH='src'; .\.venv\Scripts\python.exe -m pytest -p no:cacheprovider --basetemp "$env:TEMP\sara-track-u-tests" tests\track_u
+  ```
+
+- **Prem manual UI launch only; Codex must not run this command.** The final `reports/wp_m_report.md` must include this exact PowerShell command:
+
+  ```powershell
+  $env:PYTHONPATH='src'; .\.venv\Scripts\python.exe -m sara.ui.app
+  ```
+
+### Restrictions and Git handoff
+
+- Default conversation-history persistence to OFF (ephemeral session-only mode). Data held in RAM (:memory:) and purged when application exits unless user explicitly opts in.
+- Default long-term memory to OFF. Never automatically extract or store personal information across sessions.
+- Explicit user permission required to store any cross-session memory.
+- Provide full inspect, delete, and clear controls for memories and conversation history.
+- Enforce best-effort pattern screening to redact known API keys, tokens, and credentials before SQLite storage.
+- Disclose that API calls leave the local device over HTTPS and local deletion does not delete provider-side copies.
+- 100% offline automated tests using mock transports. No live API calls.
+- Commits must pass the active pre-commit security hook after scanning exact content. Never bypass the hook; no push or merge.
+- The grant expires after `reports/wp_m_report.md` is delivered or upon Prem's revocation.
 
