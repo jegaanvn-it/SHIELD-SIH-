@@ -1,6 +1,6 @@
 # WP-V03 Report: Actual Gemini API Configuration, Tanglish Behavior, and Verification
 
-- Branch / commit: `track-u-ui` / pending commit
+- Branch / commit: `track-u-ui` / `0d5c16c`
 - Date (UTC): 2026-10-23
 - Environment: native Windows? yes · Python 3.12.9 · google-genai 2.31.0 · pytest 9.1.1
 - Approvals received: `AUTHORIZE WP-V03`
